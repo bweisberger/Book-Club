@@ -1,0 +1,36 @@
+# Implementing Domain Driven Design Notes - Ch 4. Architecture
+
+## Layers
+- Layers of the application are separated rigorously according to function and business logic, the goal being complete separation of concerns and dependence only on the layers below.
+- Example: **User Interface Layer -> Application -> Domain -> Infrastructure**
+  - In the example above, each higher-level could couple to any lower-level layer in a [[Relaxed Layers Architecture]], whereas in a [[Strict Layers Architecture]] a higher-level layer can _only_ pair with the lower-level layer directly below.
+  - [[Observer]] and [[Mediator]] patterns [[Big 4 Patterns]] allow loose coupling of lower to higher layers.
+    - [[Mediator]] - The higher level would implement an interface defined by the lower level, and then pass that instance down to the lower level as an argument.
+    - The lower layer then can use that instance with no knowledge of the fact that it resides in the higher level.
+  ### The User Interface Layer
+  - can only contain code to address the user view and should have no domain or business logic.
+  - This includes validation that must occur in the UI, given that UI validation shouldn’t be the same as validation that needs to occur at the Domain layer.
+  - If the UI needs domain objects, it’s limited to rendering domain object data “on the glass”. If this is a necessary consideration, the [[Presentation Model]] can be used to prevent the view from knowing about the domain objects.
+  ### Application Layer
+  - has UI Layer as a direct client, and is a direct client of the domain layer
+  - No domain logic exists in the application layer
+  - Can coordinate calls persistence transactions and security
+  - May also send event-based notifications to other systems
+  - **Applications** should be lightweight and express use cases, for example by accepting parameters from the UI, using a Repository to obtain an [[Aggregate]] instance, and then execute some command operation on it.
+  - If applications are doing too much, the Domain model may be leaking logic and becoming anemic.
+  - Use a [[Factory]] or Domain constructor to create a new Aggregate, and call a Domain service if domain logic is necessary within the Application
+  - If the Domain is responsible for publishing Domain events, the Application can register subscribers to those Events. This keeps the Domain ignorant of its clients and "keeps the [[Domain Event Publisher]] lightweight and liberated from messaging infrastructure dependencies".
+  - **_I don't understand the point about coupling the Domain to Infrastructure, bottom of page 121, top of 122._**
+
+## Dependency Inversion Principle
+- From Bob Martin,
+  "High-level modules should not depend on low-level modules. Both should depend on abstractions."
+  "Abstractions should not depend upon details. Details should depend upon abstractions" (p. 123)
+- A component that provides low-level services (Infrastructure, here) should depend on interfaces defined by high-level components (i.e. UI, Application, Domain here).
+- e.g. **Infrastructure -> UI -> Application -> Domain**
+- Direction of dependence remains the same, so Infrastructure can now implement interfaces defined in the Domain layer, where before that would have broken the downward dependency principles of layers
+- Looking at this architecture further, one could argue (apparently) that there are no more layers, given everything is now dependent on abstractions - This is where we go next, to Hexagonal/Ports and Adapters
+- Implementations can be acquired via [[Dependency Injection]], [[Service Factory]], and [[Plug In]] implementations (Fowler, P of EAA).
+
+## Hexagonal/Ports and Adapters
+
